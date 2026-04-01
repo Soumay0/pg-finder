@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../components/Button';
 import { useAuth } from '../hooks/useAuth';
-import { UserRole } from '../types';
+import type { UserRole } from '../types';
 
 export const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({

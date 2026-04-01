@@ -22,13 +22,13 @@ export const Modal: React.FC<ModalProps> = ({
     lg: 'max-w-lg',
   }[size];
 
-  const backdropVariants = {
+  const backdropVariants: any = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
     exit: { opacity: 0 },
   };
 
-  const modalVariants = {
+  const modalVariants: any = {
     hidden: { opacity: 0, scale: 0.8, y: 20 },
     visible: {
       opacity: 1,

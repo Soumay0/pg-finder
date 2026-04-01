@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChatUI } from '../components/ChatUI';
-import { Message } from '../types';
+import type { Message } from '../types';
 
 const mockMessages: Message[] = [
   {

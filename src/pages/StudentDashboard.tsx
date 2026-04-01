@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { PGCard, Modal, Button, CardSkeleton } from '../components';
-import { PG } from '../types';
+import type { PG } from '../types';
 
 // Mock data - replace with actual API calls
 const mockPGs: PG[] = [
@@ -59,9 +59,8 @@ const mockPGs: PG[] = [
 ];
 
 export const StudentDashboard: React.FC = () => {
-  const [pgs, setPGs] = useState<PG[]>(mockPGs);
+  const [pgs] = useState<PG[]>(mockPGs);
   const [selectedPG, setSelectedPG] = useState<PG | null>(null);
-  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     location: '',
     maxRent: 50000,
@@ -159,7 +158,7 @@ export const StudentDashboard: React.FC = () => {
         </motion.div>
 
         {/* Grid */}
-        {loading ? (
+        {false ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <CardSkeleton key={i} />
@@ -183,7 +182,7 @@ export const StudentDashboard: React.FC = () => {
           </motion.div>
         )}
 
-        {filteredPGs.length === 0 && !loading && (
+        {filteredPGs.length === 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

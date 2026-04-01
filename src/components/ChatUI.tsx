@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Message } from '../types';
+import type { Message } from '../types';
 
 interface ChatUIProps {
   messages: Message[];

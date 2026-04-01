@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Notice } from '../types';
+import type { Notice } from '../types';
 
 interface NoticeBoardProps {
   notices: Notice[];

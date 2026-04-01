@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button, Modal, NoticeBoard } from '../components';
-import { PG, Notice } from '../types';
+import type { PG, Notice } from '../types';
 
 // Mock data
 const mockPGs: PG[] = [

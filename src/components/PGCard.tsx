@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PG } from '../types';
+import type { PG } from '../types';
 
 interface PGCardProps {
   pg: PG;
@@ -9,7 +9,7 @@ interface PGCardProps {
 }
 
 export const PGCard: React.FC<PGCardProps> = ({ pg, onClick, index = 0 }) => {
-  const containerVariants = {
+  const hoverVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -19,9 +19,6 @@ export const PGCard: React.FC<PGCardProps> = ({ pg, onClick, index = 0 }) => {
         duration: 0.4,
       },
     },
-  };
-
-  const hoverVariants = {
     initial: { boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' },
     hover: {
       boxShadow: '0 20px 25px rgba(0, 0, 0, 0.15)',
@@ -34,11 +31,10 @@ export const PGCard: React.FC<PGCardProps> = ({ pg, onClick, index = 0 }) => {
 
   return (
     <motion.div
-      variants={containerVariants}
+      variants={hoverVariants}
       initial="hidden"
       animate="visible"
       whileHover="hover"
-      variants={hoverVariants}
       onClick={onClick}
       className="card p-4 cursor-pointer overflow-hidden"
     >

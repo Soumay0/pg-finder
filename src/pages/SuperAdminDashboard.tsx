@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../components';
-import { AdminRequest, User, PG } from '../types';
+import type { AdminRequest, User, PG } from '../types';
 
 // Mock data
 const mockAdminRequests: AdminRequest[] = [

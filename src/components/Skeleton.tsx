@@ -12,7 +12,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   height = 'h-40',
   className = '',
 }) => {
-  const shimmerVariants = {
+  const shimmerVariants: any = {
     shimmer: {
       backgroundPosition: ['200% 0', '-200% 0'],
       transition: {
@@ -41,7 +41,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 };
 
 export const CardSkeleton: React.FC = () => {
-  const shimmerVariants = {
+  const shimmerVariants: any = {
     shimmer: {
       backgroundPosition: ['200% 0', '-200% 0'],
       transition: {
