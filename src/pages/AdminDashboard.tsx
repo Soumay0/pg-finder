@@ -1,44 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button, Modal, NoticeBoard } from '../components';
 import type { PG, Notice } from '../types';
+import axios from 'axios';
 
-// Mock data
-const mockPGs: PG[] = [
-  {
-    id: '1',
-    title: '2BHK Modern Apartment',
-    description: 'Spacious 2-bedroom apartment',
-    location: 'Bangalore, Koramangala',
-    rent: 15000,
-    bedrooms: 2,
-    bathrooms: 1,
-    amenities: ['WiFi', 'Water'],
-    images: [],
-    ownerId: 'user1',
-    ownerName: 'Admin User',
-    rating: 4.5,
-    reviews: 12,
-    available: true,
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const mockNotices: Notice[] = [];
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:9000/api';
 
 export const AdminDashboard: React.FC = () => {
-  const [pgs, setPGs] = useState<PG[]>(mockPGs);
-  const [notices, setNotices] = useState<Notice[]>(mockNotices);
+  const [pgs, setPGs] = useState<PG[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    title: '',
+    name: '',
     description: '',
-    location: '',
+    address: '',
+    city: '',
+    pincode: '',
     rent: '',
-    bedrooms: '',
-    bathrooms: '',
+    capacity: '',
     amenities: '',
+    rules: '',
   });
   const [noticeData, setNoticeData] = useState({
     title: '',
@@ -73,41 +57,107 @@ export const AdminDashboard: React.FC = () => {
     },
   };
 
-  const handleAddPG = () => {
-    if (
-      formData.title &&
-      formData.location &&
-      formData.rent &&
-      formData.bedrooms
-    ) {
-      const newPG: PG = {
-        id: String(Date.now()),
-        title: formData.title,
-        description: formData.description,
-        location: formData.location,
+  // Fetch admin's PGs from API
+  useEffect(() => {
+    const fetchPGs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${apiBaseUrl}/pgs/user/my-pgs`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPGs(response.data.data || []);
+      } catch (err) {
+        console.error('Error fetching PGs:', err);
+        setError('Failed to load your listings');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPGs();
+  }, []);
+
+  const handleAddPG = async () => {
+    // Validate required fields
+    if (!formData.name) {
+      setError('🏢 PG name is required');
+      return;
+    }
+    if (!formData.address) {
+      setError('📍 Address is required');
+      return;
+    }
+    if (!formData.city) {
+      setError('🏙️ City is required');
+      return;
+    }
+    if (!formData.rent) {
+      setError('💰 Rent is required');
+      return;
+    }
+    if (!formData.description) {
+      setError('📝 Description is required');
+      return;
+    }
+    if (!formData.pincode) {
+      setError('📮 Pincode is required');
+      return;
+    }
+
+    try {
+      setError(null);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('⚠️ Authentication required - please log in');
+        return;
+      }
+
+      const pgData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        address: formData.address.trim(),
+        city: formData.city.trim(),
+        pincode: formData.pincode.trim(),
         rent: Number(formData.rent),
-        bedrooms: Number(formData.bedrooms),
-        bathrooms: Number(formData.bathrooms),
-        amenities: formData.amenities.split(',').map((a) => a.trim()),
-        images: [],
-        ownerId: 'user1',
-        ownerName: 'Admin User',
-        rating: 0,
-        reviews: 0,
-        available: true,
-        createdAt: new Date().toISOString(),
+        capacity: Number(formData.capacity),
+        amenities: formData.amenities
+          .split(',')
+          .map((a) => a.trim())
+          .filter((a) => a),
+        rules: formData.rules
+          .split('\n')
+          .map((r) => r.trim())
+          .filter((r) => r),
       };
-      setPGs([...pgs, newPG]);
+
+      console.log('Sending PG data:', pgData);
+
+      const response = await axios.post(`${apiBaseUrl}/pgs`, pgData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log('PG created successfully:', response.data);
+
+      setPGs([...pgs, response.data.data]);
       setFormData({
-        title: '',
+        name: '',
         description: '',
-        location: '',
+        address: '',
+        city: '',
+        pincode: '',
         rent: '',
-        bedrooms: '',
-        bathrooms: '',
+        capacity: '',
         amenities: '',
+        rules: '',
       });
       setShowAddModal(false);
+    } catch (err: any) {
+      console.error('Full error object:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to add listing';
+      setError(`❌ ${errorMessage}`);
     }
   };
 
@@ -118,7 +168,7 @@ export const AdminDashboard: React.FC = () => {
         title: noticeData.title,
         content: noticeData.content,
         author: 'Admin',
-        role: 'admin',
+        role: 'owner',
         createdAt: new Date().toISOString(),
       };
       setNotices([...notices, newNotice]);
@@ -127,8 +177,17 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleDeletePG = (id: string) => {
-    setPGs(pgs.filter((pg) => pg.id !== id));
+  const handleDeletePG = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${apiBaseUrl}/pgs/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPGs(pgs.filter((pg) => pg._id !== id));
+    } catch (err) {
+      console.error('Error deleting PG:', err);
+      setError('Failed to delete listing');
+    }
   };
 
   const handleDeleteNotice = (id: string) => {
@@ -145,9 +204,20 @@ export const AdminDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div className="mb-8">
-          <h1 className="text-4xl font-bold text-dark mb-2">Admin Dashboard</h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your PG listings and notices</p>
         </motion.div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6"
+          >
+            {error}
+          </motion.div>
+        )}
 
         {/* Action Buttons */}
         <motion.div
@@ -177,9 +247,7 @@ export const AdminDashboard: React.FC = () => {
           </motion.div>
           <motion.div variants={itemVariants} className="card p-6">
             <h3 className="text-gray-600 text-sm font-medium mb-2">Active Listings</h3>
-            <p className="text-3xl font-bold text-secondary">
-              {pgs.filter((pg) => pg.available).length}
-            </p>
+            <p className="text-3xl font-bold text-secondary">{pgs.length}</p>
           </motion.div>
           <motion.div variants={itemVariants} className="card p-6">
             <h3 className="text-gray-600 text-sm font-medium mb-2">Notices Posted</h3>
@@ -194,20 +262,22 @@ export const AdminDashboard: React.FC = () => {
           transition={{ delay: 0.3 }}
           className="bg-white rounded-lg shadow-md p-6 mb-8"
         >
-          <h2 className="text-2xl font-bold text-dark mb-6">My Listings</h2>
-          {pgs.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No listings yet</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">My Listings</h2>
+          {loading ? (
+            <p className="text-gray-500 text-center py-8">Loading your listings...</p>
+          ) : pgs.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No listings yet. Click "Add PG" to get started!</p>
           ) : (
             <div className="space-y-4">
               {pgs.map((pg) => (
                 <motion.div
-                  key={pg.id}
+                  key={pg._id}
                   whileHover={{ scale: 1.01 }}
                   className="border rounded-lg p-4 flex justify-between items-start hover:shadow-md transition-shadow"
                 >
                   <div>
-                    <h3 className="font-bold text-dark mb-1">{pg.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{pg.location}</p>
+                    <h3 className="font-bold text-slate-900 mb-1">{pg.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{pg.address}, {pg.city}</p>
                     <p className="text-lg font-bold text-green-600">₹{pg.rent}/month</p>
                   </div>
                   <div className="flex gap-2">
@@ -216,7 +286,7 @@ export const AdminDashboard: React.FC = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => handleDeletePG(pg.id)}
+                      onClick={() => handleDeletePG(pg._id)}
                       className="text-red-600 border-red-300"
                     >
                       Delete
@@ -252,9 +322,9 @@ export const AdminDashboard: React.FC = () => {
         <div className="space-y-4">
           <input
             type="text"
-            placeholder="PG Title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            placeholder="PG Name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="input-field"
           />
           <textarea
@@ -268,9 +338,23 @@ export const AdminDashboard: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="Location"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            placeholder="Address"
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            className="input-field"
+          />
+          <input
+            type="text"
+            placeholder="City"
+            value={formData.city}
+            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+            className="input-field"
+          />
+          <input
+            type="text"
+            placeholder="Pincode"
+            value={formData.pincode}
+            onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
             className="input-field"
           />
           <input
@@ -280,34 +364,32 @@ export const AdminDashboard: React.FC = () => {
             onChange={(e) => setFormData({ ...formData, rent: e.target.value })}
             className="input-field"
           />
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              placeholder="Bedrooms"
-              value={formData.bedrooms}
-              onChange={(e) =>
-                setFormData({ ...formData, bedrooms: e.target.value })
-              }
-              className="input-field"
-            />
-            <input
-              type="number"
-              placeholder="Bathrooms"
-              value={formData.bathrooms}
-              onChange={(e) =>
-                setFormData({ ...formData, bathrooms: e.target.value })
-              }
-              className="input-field"
-            />
-          </div>
+          <input
+            type="number"
+            placeholder="Capacity (Number of people)"
+            value={formData.capacity}
+            onChange={(e) =>
+              setFormData({ ...formData, capacity: e.target.value })
+            }
+            className="input-field"
+          />
           <input
             type="text"
-            placeholder="Amenities (comma-separated)"
+            placeholder="Amenities (comma-separated, e.g., WiFi, Water, Electricity)"
             value={formData.amenities}
             onChange={(e) =>
               setFormData({ ...formData, amenities: e.target.value })
             }
             className="input-field"
+          />
+          <textarea
+            placeholder="Rules (one per line)"
+            value={formData.rules}
+            onChange={(e) =>
+              setFormData({ ...formData, rules: e.target.value })
+            }
+            className="input-field"
+            rows={3}
           />
           <Button variant="primary" onClick={handleAddPG} fullWidth>
             Add Listing
