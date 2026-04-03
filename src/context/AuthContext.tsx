@@ -34,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('token', newToken);
       setToken(newToken);
       setUser(userData);
+      return userData; // Return user data
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -45,10 +46,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = useCallback(async (email: string, password: string, name: string, role: UserRole) => {
     setLoading(true);
     try {
-      const { user: userData, token: newToken } = await authService.register(email, password, name, role);
+      const response = await authService.register(email, password, name, role);
+      
+      // If admin registration requires approval, don't set token
+      if (response.requiresApproval) {
+        return response; // Return response without setting token
+      }
+
+      const { user: userData, token: newToken } = response;
       localStorage.setItem('token', newToken);
       setToken(newToken);
       setUser(userData);
+      return response; // Return user data
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
