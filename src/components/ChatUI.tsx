@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Send } from 'lucide-react';
 import type { Message } from '../types';
 
 interface ChatUIProps {
@@ -35,11 +36,20 @@ export const ChatUI: React.FC<ChatUIProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-96 bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="flex flex-col h-96 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-2xl shadow-2xl overflow-hidden border border-white/10 backdrop-blur-xl">
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <p className="text-center text-gray-500 mt-8">No messages yet</p>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="h-full flex items-center justify-center"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">💬</div>
+              <p className="text-gray-400 font-medium">No messages yet. Start a conversation!</p>
+            </div>
+          </motion.div>
         ) : (
           messages.map((msg) => (
             <motion.div
@@ -52,20 +62,23 @@ export const ChatUI: React.FC<ChatUIProps> = ({
               }`}
             >
               <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
+                className={`max-w-xs px-4 py-3 rounded-xl backdrop-blur-md ${
                   msg.senderId === currentUserId
-                    ? 'bg-primary text-white rounded-br-none'
-                    : 'bg-gray-300 text-dark rounded-bl-none'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-none shadow-lg'
+                    : 'bg-white/10 text-gray-100 rounded-bl-none border border-white/20'
                 }`}
               >
                 {msg.senderId !== currentUserId && (
-                  <p className="text-xs font-medium opacity-75 mb-1">
+                  <p className="text-xs font-semibold mb-1 text-gray-300">
                     {msg.senderName}
                   </p>
                 )}
-                <p className="text-sm break-words">{msg.content}</p>
-                <p className="text-xs opacity-75 mt-1">
-                  {new Date(msg.timestamp).toLocaleTimeString()}
+                <p className="text-sm break-words leading-relaxed">{msg.content}</p>
+                <p className="text-xs opacity-70 mt-1 font-medium">
+                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
                 </p>
               </div>
             </motion.div>
@@ -74,22 +87,23 @@ export const ChatUI: React.FC<ChatUIProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 flex gap-2">
-        <input
+      <div className="p-4 border-t border-white/10 flex gap-2 bg-white/5 backdrop-blur">
+        <motion.input
+          whileFocus={{ scale: 1.02 }}
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Type a message..."
-          className="input-field flex-1"
+          className="flex-1 px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-white/50 focus:bg-white/20 transition-all text-sm"
         />
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleSend}
-          className="btn-primary"
+          className="p-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg"
         >
-          Send
+          <Send size={20} />
         </motion.button>
       </div>
     </div>
