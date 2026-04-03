@@ -1,231 +1,247 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { Menu, X } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
+    setMobileMenuOpen(false);
   };
 
-  const navVariants = {
-    hidden: { opacity: 0, y: -20 },
+  const containerVariants = {
+    hidden: { opacity: 0, y: -10 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5 },
+      transition: { duration: 0.3, ease: 'easeOut' },
     },
   };
 
-  const menuVariants = {
-    hidden: { opacity: 0, height: 0 },
+  const menuItemVariants = {
+    hidden: { opacity: 0, x: -20 },
     visible: {
       opacity: 1,
-      height: 'auto',
+      x: 0,
       transition: { duration: 0.3 },
     },
   };
 
   return (
-    <motion.nav
-      variants={navVariants}
-      initial="hidden"
-      animate="visible"
-      className="bg-white shadow-md sticky top-0 z-50"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link
-            to={isAuthenticated ? (user?.role === 'student' ? '/dashboard/student' : '/dashboard/admin') : '/'}
-            className="flex items-center gap-2"
-          >
+    <>
+      <motion.nav
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-slate-900/80 border-b border-white/10"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
             <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="text-2xl font-bold text-primary"
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => navigate('/')}
             >
-              🏠
+              <div className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                🏠 PG Finder
+              </div>
             </motion.div>
-            <span className="text-xl font-bold hidden sm:inline">PG Finder</span>
-          </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            {!isAuthenticated ? (
-              <>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-8">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/')}
+                className={`text-sm font-medium transition-all relative ${
+                  isActive('/') ? 'text-purple-400' : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Home
+                {isActive('/') && (
+                  <motion.div
+                    layoutId="underline"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-400"
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+              </motion.button>
+              
+              {user && (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/login')}
-                  className="text-dark hover:text-primary"
+                  onClick={() => {
+                    if (user.role === 'student') navigate('/dashboard/student');
+                    else if (user.role === 'owner') navigate('/dashboard/owner');
+                    else navigate('/dashboard/superadmin');
+                  }}
+                  className={`text-sm font-medium transition-all relative text-gray-300 hover:text-white`}
                 >
-                  Login
+                  Dashboard
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/register')}
-                  className="btn-primary"
-                >
-                  Register
-                </motion.button>
-              </>
-            ) : (
-              <>
-                {user?.role === 'student' && (
-                  <>
-                    <Link
-                      to="/dashboard/student"
-                      className="text-dark hover:text-primary transition-colors"
-                    >
-                      Browse PGs
-                    </Link>
-                    <Link
-                      to="/messages"
-                      className="flex items-center gap-2 text-dark hover:text-primary transition-colors"
-                    >
-                      💬 Messages
-                    </Link>
-                  </>
-                )}
-                {user?.role === 'admin' && (
-                  <>
-                    <Link
-                      to="/dashboard/admin"
-                      className="text-dark hover:text-primary transition-colors"
-                    >
-                      Manage PGs
-                    </Link>
-                    <Link
-                      to="/messages"
-                      className="text-dark hover:text-primary transition-colors"
-                    >
-                      Messages
-                    </Link>
-                  </>
-                )}
-                {user?.role === 'superadmin' && (
-                  <>
-                    <Link
-                      to="/dashboard/superadmin"
-                      className="text-dark hover:text-primary transition-colors"
-                    >
-                      Manage Platform
-                    </Link>
-                    <Link
-                      to="/messages"
-                      className="text-dark hover:text-primary transition-colors"
-                    >
-                      Messages
-                    </Link>
-                  </>
-                )}
+              )}
+            </div>
 
-                <div className="flex items-center gap-3 ml-4">
-                  <span className="text-sm text-gray-600">{user?.name}</span>
+            {/* Auth Buttons / User Menu */}
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-4"
+                >
+                  <div className="px-4 py-2 rounded-full bg-white/5 border border-white/20">
+                    <p className="text-sm font-medium text-gray-300">
+                      👤 {user.name.split(' ')[0]}
+                    </p>
+                  </div>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleLogout}
-                    className="btn-outline text-sm"
+                    className="px-5 py-2 rounded-lg border border-red-500/50 text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium"
                   >
-                    Logout
+                    🚪 Logout
                   </motion.button>
-                </div>
-              </>
-            )}
-          </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-3"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/login')}
+                    className="px-4 py-2 rounded-lg text-gray-300 hover:text-white text-sm font-medium transition-all"
+                  >
+                    🔐 Login
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/register')}
+                    className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-bold hover:from-purple-700 hover:to-pink-700 transition-all"
+                  >
+                    ✨ Sign Up
+                  </motion.button>
+                </motion.div>
+              )}
+            </div>
 
-          {/* Mobile Menu Toggle */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="md:hidden"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            {/* Mobile Menu Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden text-white p-2"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </motion.button>
-        </div>
-
-        {/* Mobile Menu */}
-        <motion.div
-          variants={menuVariants}
-          initial="hidden"
-          animate={isOpen ? 'visible' : 'hidden'}
-          className="md:hidden overflow-hidden"
-        >
-          <div className="px-2 py-4 space-y-2">
-            {!isAuthenticated ? (
-              <>
-                <button
-                  onClick={() => {
-                    navigate('/login');
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-light rounded-lg"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => {
-                    navigate('/register');
-                    setIsOpen(false);
-                  }}
-                  className="w-full btn-primary"
-                >
-                  Register
-                </button>
-              </>
-            ) : (
-              <>
-                {user?.role === 'student' && (
-                  <>
-                    <Link
-                      to="/dashboard/student"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-4 py-2 hover:bg-light rounded-lg"
-                    >
-                      Browse PGs
-                    </Link>
-                    <Link
-                      to="/messages"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-4 py-2 hover:bg-light rounded-lg"
-                    >
-                      Messages
-                    </Link>
-                  </>
+              <AnimatePresence mode="wait">
+                {mobileMenuOpen ? (
+                  <motion.div key="close" initial={{ rotate: -90 }} animate={{ rotate: 0 }} exit={{ rotate: 90 }}>
+                    <X size={24} />
+                  </motion.div>
+                ) : (
+                  <motion.div key="menu" initial={{ rotate: 90 }} animate={{ rotate: 0 }} exit={{ rotate: -90 }}>
+                    <Menu size={24} />
+                  </motion.div>
                 )}
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                >
-                  Logout
-                </button>
-              </>
-            )}
+              </AnimatePresence>
+            </motion.button>
           </div>
-        </motion.div>
-      </div>
-    </motion.nav>
+
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="md:hidden border-t border-white/10 bg-slate-800/95 backdrop-blur-sm"
+              >
+                <div className="px-4 py-4 space-y-3">
+                  <motion.button
+                    onClick={() => {
+                      navigate('/');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-lg font-medium transition-all text-gray-300 hover:bg-white/5"
+                  >
+                    🏠 Home
+                  </motion.button>
+                  
+                  {user && (
+                    <motion.button
+                      onClick={() => {
+                        if (user.role === 'student') navigate('/dashboard/student');
+                        else if (user.role === 'owner') navigate('/dashboard/owner');
+                        else navigate('/dashboard/superadmin');
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 rounded-lg font-medium transition-all text-gray-300 hover:bg-white/5"
+                    >
+                      📊 Dashboard
+                    </motion.button>
+                  )}
+                  
+                  <div className="border-t border-white/10 pt-3 mt-3 space-y-2">
+                    {user ? (
+                      <>
+                        <div className="px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+                          <p className="text-sm font-medium text-gray-300">👤 {user.name}</p>
+                        </div>
+                        <motion.button
+                          onClick={handleLogout}
+                          className="w-full px-4 py-3 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 font-medium transition-all"
+                        >
+                          🚪 Logout
+                        </motion.button>
+                      </>
+                    ) : (
+                      <>
+                        <motion.button
+                          onClick={() => {
+                            navigate('/login');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-3 rounded-lg bg-white/10 text-white font-medium hover:bg-white/20 transition-all"
+                        >
+                          🔐 Login
+                        </motion.button>
+                        <motion.button
+                          onClick={() => {
+                            navigate('/register');
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:from-purple-700 hover:to-pink-700 transition-all"
+                        >
+                          ✨ Sign Up
+                        </motion.button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </motion.nav>
+
+      {/* Spacer */}
+      <div className="h-16" />
+    </>
   );
 };
