@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'admin' | 'superadmin';
+export type UserRole = 'student' | 'owner' | 'superadmin';
 
 export interface User {
   id: string;
@@ -14,8 +14,8 @@ export interface AuthContextType {
   token: string | null;
   loading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role: UserRole) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (email: string, password: string, name: string, role: UserRole) => Promise<User>;
   logout: () => void;
 }
 
@@ -43,7 +43,7 @@ export interface Notice {
   content: string;
   author: string;
   createdAt: string;
-  role: 'admin' | 'superadmin';
+  role: 'owner' | 'superadmin';
 }
 
 export interface Message {
