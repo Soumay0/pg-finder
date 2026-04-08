@@ -1,0 +1,30 @@
+{
+  "name": "pg-finder-backend",
+  "version": "1.0.0",
+  "description": "Backend for PG Finder Platform",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "verify": "node verify-db.js",
+    "seed": "node seed.js",
+    "build": "echo 'No build needed for Node backend'",
+    "test": "echo 'Tests coming soon'"
+  },
+  "keywords": ["pg-finder", "mongodb", "express"],
+  "author": "PG Finder Team",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "validator": "^13.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
