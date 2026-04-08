@@ -5,6 +5,10 @@ import { ProtectedRoute } from './components';
 import {
   HomePage,
   LoginPage,
+  StudentLoginPage,
+  AdminLoginPage,
+  AdminRequestPage,
+  SuperAdminLoginPage,
   RegisterPage,
   StudentDashboard,
   AdminDashboard,
@@ -26,6 +30,8 @@ function App() {
               </MainLayout>
             }
           />
+          
+          {/* Login Routes - Role Based */}
           <Route
             path="/login"
             element={
@@ -35,10 +41,44 @@ function App() {
             }
           />
           <Route
+            path="/login/student"
+            element={
+              <MainLayout>
+                <StudentLoginPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/login/owner"
+            element={
+              <MainLayout>
+                <AdminLoginPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/login/superadmin"
+            element={
+              <MainLayout>
+                <SuperAdminLoginPage />
+              </MainLayout>
+            }
+          />
+          
+          <Route
             path="/register"
             element={
               <MainLayout>
                 <RegisterPage />
+              </MainLayout>
+            }
+          />
+
+          <Route
+            path="/admin/request"
+            element={
+              <MainLayout>
+                <AdminRequestPage />
               </MainLayout>
             }
           />
@@ -55,10 +95,10 @@ function App() {
             }
           />
           <Route
-            path="/dashboard/admin"
+            path="/dashboard/owner"
             element={
               <MainLayout>
-                <ProtectedRoute roles={['admin']}>
+                <ProtectedRoute roles={['owner']}>
                   <AdminDashboard />
                 </ProtectedRoute>
               </MainLayout>
