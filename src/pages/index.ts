@@ -1,4 +1,8 @@
 export { LoginPage } from './LoginPage';
+export { StudentLoginPage } from './StudentLoginPage';
+export { AdminLoginPage } from './AdminLoginPage';
+export { AdminRequestPage } from './AdminRequestPage';
+export { SuperAdminLoginPage } from './SuperAdminLoginPage';
 export { RegisterPage } from './RegisterPage';
 export { HomePage } from './HomePage';
 export { StudentDashboard } from './StudentDashboard';
